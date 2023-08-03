@@ -8,9 +8,12 @@ provider:
   runtime: nodejs16.x
 
 functions:
-  api:
-    handler: index.handler
+  sendResponse:
+    handler: index.sendResponse
     events:
       - httpApi:
-          path: /
-          method: get
+          path: /api/results
+          method: post
+          request:
+            schemas:
+              application/json: ${file(./schemas/sendResponse.json)}
