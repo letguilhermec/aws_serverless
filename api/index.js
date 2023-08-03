@@ -1,13 +1,47 @@
-module.exports.handler = async (event) => {
+function extractBody(event) {
+  if (!event?.body) {
+    return {
+      statusCode: 422,
+      body: JSON.stringify({ error: 'Missing body' })
+    }
+  }
+  return JSON.parse(event.body)
+}
+
+const previousResults = new Map()
+
+module.exports.sendResponse = async (event) => {
+  const { name, answers } = extractBody(event)
+  const correctQuestions = [3, 1, 0, 2]
+
+  const correctAnswers = answers.reduce((acc, answer, index) => {
+    if (answer === correctQuestions[index]) {
+      acc++
+    }
+    return acc
+  }, 0)
+
+  const result = {
+    name,
+    correctAnswers,
+    totalAnswers: answers.length
+  }
+
+  const resultId = randomUUID()
+  previousResults.set(resultId, { response: req.body, result })
+
   return {
-    statusCode: 200,
+    statusCode: 201,
     body: JSON.stringify(
       {
-        message: "Go Serverless v3.0! Your function executed successfully!",
-        input: event,
-      },
-      null,
-      2
-    ),
-  };
-};
+        resultId,
+        __hypermedia: {
+          href: `/results.html`,
+          query: { id: resultId }
+        }
+      }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }
+}
