@@ -9,7 +9,7 @@ provider:
 
 functions:
   sendResponse:
-    handler: index.sendResponse
+    handler: api/index.sendResponse
     events:
       - httpApi:
           path: /api/results
@@ -17,3 +17,12 @@ functions:
           request:
             schemas:
               application/json: ${file(./schemas/sendResponse.json)}
+  getResult:
+    handler: api/index.getResult
+    events:
+      - httpApi:
+        path: /api/results/{id}
+        method: get
+
+plugins:
+  - serverless-offline
