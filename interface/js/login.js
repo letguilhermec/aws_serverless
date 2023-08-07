@@ -7,7 +7,7 @@ document.querySelector('#submit').addEventListener('click', async (e) => {
 
   const response = await fetch('https://vm3z8tyqhi.execute-api.us-east-1.amazonaws.com/api/login', {
     method: 'POST',
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ name: username, password }),
     headers: {
       'Content-Type': 'application/json'
     }

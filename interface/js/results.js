@@ -8,14 +8,14 @@ const bail = () => {
 
 if (!resultId) bail()
 
-fetch(`/api/results/${resultId}`)
+fetch(`https://vm3z8tyqhi.execute-api.us-east-1.amazonaws.com/api/results/${resultId}`)
   .then((r) => {
     if (!r.ok) bail()
     return r.json()
   })
   .then(({ result }) => {
     document.getElementById('student-name').innerText = result.name
-    document.getElementById('correct').innerText = result.correctAnswers
+    document.getElementById('correct').innerText = result.totalCorrectAnswers
   })
   .catch((e) => {
     console.error(e)
