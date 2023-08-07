@@ -1,6 +1,7 @@
 const { buildResponse } = require('./utils')
 const { getUserByCredentials, saveResultToDatabase, getResultById } = require('./database')
-const { createToken, authorize } = require('./auth')
+const { createToken, authorize, makeHash } = require('./auth')
+const { countCorrectAnswers } = require('./responses')
 
 function extractBody(event) {
   if (!event?.body) {
@@ -11,7 +12,7 @@ function extractBody(event) {
 
 module.exports.login = async (event) => {
   const { name, password } = extractBody(event)
-  const hashedPass = pbkdf2Sync(password, process.env.SALT, 100000, 64, 'sha512').toString('hex')
+  const hashedPass = makeHash(password)
 
   const user = await getUserByCredentials(name, hashedPass)
 
@@ -29,21 +30,8 @@ module.exports.sendResponse = async (event) => {
   if (authResult.statusCode === 401) return authResult
 
   const { name, answers } = extractBody(event)
-  const correctQuestions = [3, 1, 0, 2]
 
-  const totalCorrectAnswers = answers.reduce((acc, answer, index) => {
-    if (answer === correctQuestions[index]) {
-      acc++
-    }
-    return acc
-  }, 0)
-
-  const result = {
-    name,
-    answers,
-    totalCorrectAnswers,
-    totalAnswers: answers.length
-  }
+  const result = countCorrectAnswers(name, answers)
 
   const insertedId = await saveResultToDatabase(result)
 
