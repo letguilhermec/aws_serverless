@@ -1,30 +1,6 @@
-const { pbkdf2Sync } = require('crypto')
-const { sign, verify } = require('jsonwebtoken')
 const { buildResponse } = require('./utils')
 const { getUserByCredentials, saveResultToDatabase, getResultById } = require('./database')
-
-async function authorize(event) {
-  const { authorization } = event.headers
-
-  if (!authorization) {
-    return buildResponse(401, { error: 'Missing authorization header.' })
-  }
-
-  const [type, token] = authorization.split(' ')
-  if (type !== 'Bearer' || !token) {
-    return buildResponse(401, { error: 'Unsupported authorization type.' })
-  }
-
-  const decodedToken = verify(token, process.env.JWT_SECRET, {
-    audience: 'alura-serverless'
-  })
-
-  if (!decodedToken) {
-    return buildResponse(401, { error: 'Invalid token.' })
-  }
-
-  return decodedToken
-}
+const { createToken, authorize } = require('./auth')
 
 function extractBody(event) {
   if (!event?.body) {
@@ -43,10 +19,7 @@ module.exports.login = async (event) => {
     return buildResponse(401, { error: 'Invalid credentials.' })
   }
 
-  const token = sign({ name, id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '24h',
-    audience: 'alura-serverless'
-  })
+  const token = createToken(name, user._id)
 
   return buildResponse(200, { token })
 }
