@@ -8,6 +8,7 @@ params:
     dbName: alura-serverless
   dev:
     connectionString: mongodb://localhost:27017/${self:params.default.dbName}
+    salt: AGpiuqagjklg)@*aosigha0a8wghy
   prod:
 
 provider:
@@ -16,6 +17,7 @@ provider:
   environment:
     MONGODB_CONNECTIONSTRING: ${param:connectionString}
     MONGODB_DBNAME: ${param:dbName}
+    SALT: ${param:salt}
 
 functions:
   sendResponse:
