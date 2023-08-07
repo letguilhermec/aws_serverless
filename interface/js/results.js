@@ -8,7 +8,11 @@ const bail = () => {
 
 if (!resultId) bail()
 
-fetch(`https://vm3z8tyqhi.execute-api.us-east-1.amazonaws.com/api/results/${resultId}`)
+fetch(`https://vm3z8tyqhi.execute-api.us-east-1.amazonaws.com/api/results/${resultId}`, {
+  headers: {
+    Authorization: `Bearer ${window.localStorage.getItem('token')}`
+  }
+})
   .then((r) => {
     if (!r.ok) bail()
     return r.json()
