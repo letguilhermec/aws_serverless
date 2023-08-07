@@ -1,6 +1,7 @@
 const { MongoClient, ObjectId } = require("mongodb")
 const { pbkdf2Sync } = require('crypto')
 const { sign, verify } = require('jsonwebtoken')
+const { buildResponse } = require('./utils')
 
 let connectionInstance = null
 
@@ -14,21 +15,15 @@ async function connectToDatabase() {
 }
 
 async function authorize(event) {
-  const { authorization } = event.header
+  const { authorization } = event.headers
 
   if (!authorization) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Missing authorization header.' })
-    }
+    return buildResponse(401, { error: 'Missing authorization header.' })
   }
 
   const [type, token] = authorization.split(' ')
   if (type !== 'Bearer' || !token) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Unsupported authorization type.' })
-    }
+    return buildResponse(401, { error: 'Unsupported authorization type.' })
   }
 
   const decodedToken = verify(token, process.env.JWT_SECRET, {
@@ -36,10 +31,7 @@ async function authorize(event) {
   })
 
   if (!decodedToken) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Invalid token.' })
-    }
+    return buildResponse(401, { error: 'Invalid token.' })
   }
 
   return decodedToken
@@ -47,10 +39,7 @@ async function authorize(event) {
 
 function extractBody(event) {
   if (!event?.body) {
-    return {
-      statusCode: 422,
-      body: JSON.stringify({ error: 'Missing body' })
-    }
+    return buildResponse(422, { error: 'Missing body' })
   }
   return JSON.parse(event.body)
 }
@@ -67,10 +56,7 @@ module.exports.login = async (event) => {
   })
 
   if (!user) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ error: 'Invalid credentials.' })
-    }
+    return buildResponse(401, { error: 'Invalid credentials.' })
   }
 
   const token = sign({ name, id: user._id }, process.env.JWT_SECRET, {
@@ -78,13 +64,7 @@ module.exports.login = async (event) => {
     audience: 'alura-serverless'
   })
 
-  return {
-    statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ token })
-  }
+  return buildResponse(200, { token })
 }
 
 module.exports.sendResponse = async (event) => {
@@ -112,20 +92,13 @@ module.exports.sendResponse = async (event) => {
   const collection = await client.collection('results')
   const { insertedId } = await collection.insertOne(result)
 
-  return {
-    statusCode: 201,
-    body: JSON.stringify(
-      {
-        resultId: insertedId,
-        __hypermedia: {
-          href: `/results.html`,
-          query: { id: insertedId }
-        }
-      }),
-    headers: {
-      'Content-Type': 'application/json'
+  return buildResponse(201, {
+    resultId: insertedId,
+    __hypermedia: {
+      href: `/results.html`,
+      query: { id: insertedId }
     }
-  }
+  })
 }
 
 module.exports.getResult = async (event) => {
@@ -140,19 +113,8 @@ module.exports.getResult = async (event) => {
   })
 
   if (!result) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ error: 'Result not found' }),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }
+    return buildResponse(404, { error: 'Result not found' })
   }
-  return {
-    statusCode: 200,
-    body: JSON.stringify(result),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  }
+
+  return buildResponse(200, result)
 }
