@@ -1,5 +1,9 @@
 const $ = document.querySelector.bind(document)
 
+if (!window.localStorage.getItem('token')) {
+  window.location.href = '/login.html'
+}
+
 $('form').addEventListener('submit', async (e) => {
   e.preventDefault()
   const data = {
