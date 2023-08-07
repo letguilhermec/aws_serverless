@@ -17,7 +17,7 @@ fetch(`https://vm3z8tyqhi.execute-api.us-east-1.amazonaws.com/api/results/${resu
     if (!r.ok) bail()
     return r.json()
   })
-  .then(({ result }) => {
+  .then((result) => {
     document.getElementById('student-name').innerText = result.name
     document.getElementById('correct').innerText = result.totalCorrectAnswers
   })
